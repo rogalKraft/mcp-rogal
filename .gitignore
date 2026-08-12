@@ -39,5 +39,7 @@ replay_*.log
 *.hprof
 *.jfr
 
-.claude
 .roo
+
+# Built artifacts copied out for convenience
+dist/

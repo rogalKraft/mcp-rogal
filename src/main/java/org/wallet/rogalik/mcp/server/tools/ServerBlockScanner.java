@@ -1,0 +1,94 @@
+package org.wallet.rogalik.mcp.server.tools;
+
+import com.google.gson.JsonObject;
+import org.wallet.rogalik.mcp.utils.IBlockScanner;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+
+public class ServerBlockScanner implements IBlockScanner {
+    private final MinecraftServer server;
+
+    public ServerBlockScanner(MinecraftServer server) {
+        this.server = server;
+    }
+
+    @Override
+    public JsonObject scanBlocksInArea(JsonObject fromPos, JsonObject toPos, int maxAreaSize) {
+        try {
+            return server.submit(() -> {
+                if (server == null) {
+                    JsonObject error = new JsonObject();
+                    error.addProperty("error", "Server instance not available");
+                    return error;
+                }
+
+                ServerLevel world;
+                if (server.getPlayerList() == null || server.getPlayerList().getPlayers().isEmpty()) {
+                    // Fallback to the overworld if no players are online
+                    world = server.overworld();
+                } else {
+                    // Use the first player's world
+                    ServerPlayer player = server.getPlayerList().getPlayers().get(0);
+                    world = player.createCommandSourceStack().getLevel();
+                }
+
+                int x1 = fromPos.get("x").getAsInt();
+                int y1 = fromPos.get("y").getAsInt();
+                int z1 = fromPos.get("z").getAsInt();
+                int x2 = toPos.get("x").getAsInt();
+                int y2 = toPos.get("y").getAsInt();
+                int z2 = toPos.get("z").getAsInt();
+
+                int minX = Math.min(x1, x2);
+                int minY = Math.min(y1, y2);
+                int minZ = Math.min(z1, z2);
+                int maxX = Math.max(x1, x2);
+                int maxY = Math.max(y1, y2);
+                int maxZ = Math.max(z1, z2);
+
+                int dx = maxX - minX + 1;
+                int dy = maxY - minY + 1;
+                int dz = maxZ - minZ + 1;
+
+                if (dx > maxAreaSize || dy > maxAreaSize || dz > maxAreaSize) {
+                    JsonObject error = new JsonObject();
+                    error.addProperty("error", "Area too large. Max size is " + maxAreaSize + " per axis.");
+                    return error;
+                }
+
+                java.util.List<org.wallet.rogalik.mcp.utils.BlockCompressor.BlockData> blocks = new java.util.ArrayList<>();
+                int count = 0;
+
+                for (int x = minX; x <= maxX; x++) {
+                    for (int y = minY; y <= maxY; y++) {
+                        for (int z = minZ; z <= maxZ; z++) {
+                            BlockPos pos = new BlockPos(x, y, z);
+                            net.minecraft.world.level.block.state.BlockState state = world.getBlockState(pos);
+
+                            if (!state.isAir()) {
+                                String name = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+                                blocks.add(new org.wallet.rogalik.mcp.utils.BlockCompressor.BlockData(x, y, z, name));
+                                count++;
+                            }
+                        }
+                    }
+                }
+
+                JsonObject result = org.wallet.rogalik.mcp.utils.BlockCompressor.compressBlocks(blocks);
+
+                JsonObject stats = new JsonObject();
+                stats.addProperty("total_scanned", dx * dy * dz);
+                stats.addProperty("non_air_blocks", count);
+                result.add("stats", stats);
+
+                return result;
+            }).get();
+        } catch (Exception e) {
+            JsonObject error = new JsonObject();
+            error.addProperty("error", "Failed to scan blocks: " + e.getMessage());
+            return error;
+        }
+    }
+}

@@ -11,7 +11,7 @@
 ## 아키텍처 구조
 
 ```
-[Claude/LLM] ←HTTP/JSON→ [MCP Server] ←→ [Fabric Mod] ←→ [Minecraft Client]
+[AI assistant] ←HTTP/JSON→ [MCP Server] ←→ [Fabric Mod] ←→ [Minecraft Client]
                               ↑              ↑              ↑
                           HTTP 8080      Mod Events    Game World
 ```

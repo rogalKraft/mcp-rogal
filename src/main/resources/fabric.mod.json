@@ -1,35 +1,38 @@
 {
 	"schemaVersion": 1,
-	"id": "mcp-server-mod",
+	"id": "mcp-rogal",
 	"version": "${version}",
-	"name": "MCP Server Mod",
-	"description": "A Fabric mod that implements an MCP (Model Context Protocol) server, enabling AI assistants like Claude to interact with Minecraft through structured commands.",
+	"name": "MCP-rogal",
+	"description": "An MCP server for developing Minecraft mods and datapacks: real command results, searchable live logs, keyboard and mouse control, sandboxed datapack files, and fake players for testing multiplayer rules.",
 	"authors": [
-		"cuspymd"
+		"rogalKraft"
+	],
+	"credits": [
+		"cuspymd - original mcp-server-mod this project started from"
 	],
 	"contact": {
-		"homepage": "https://github.com/cuspymd/mcp-server-mod",
-		"sources": "https://github.com/cuspymd/mcp-server-mod",
-		"issues": "https://github.com/cuspymd/mcp-server-mod/issues"
+		"homepage": "https://github.com/rogalKraft/mcp-rogal",
+		"sources": "https://github.com/rogalKraft/mcp-rogal",
+		"issues": "https://github.com/rogalKraft/mcp-rogal/issues"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/mcp-server-mod/icon.png",
+	"icon": "assets/mcp-rogal/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"cuspymd.mcp.mod.MCPServerMod"
+			"org.wallet.rogalik.mcp.MCPServerMod"
 		],
 		"client": [
-			"cuspymd.mcp.mod.MCPServerModClient"
+			"org.wallet.rogalik.mcp.MCPServerModClient"
 		],
 		"server": [
-			"cuspymd.mcp.mod.MCPServerModServer"
+			"org.wallet.rogalik.mcp.MCPServerModServer"
 		]
 	},
 	"mixins": [
-		"mcp-server-mod.mixins.json",
+		"mcp-rogal.mixins.json",
 		{
-			"config": "mcp-server-mod.client.mixins.json",
+			"config": "mcp-rogal.client.mixins.json",
 			"environment": "client"
 		}
 	],

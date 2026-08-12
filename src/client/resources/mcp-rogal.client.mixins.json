@@ -1,0 +1,15 @@
+{
+	"required": true,
+	"package": "org.wallet.rogalik.mcp.mixin.client",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"ExampleClientMixin",
+		"ChatMessageCaptureMixin",
+		"KeyboardHandlerAccessor",
+		"MouseHandlerAccessor",
+		"MinecraftServerAccessor"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

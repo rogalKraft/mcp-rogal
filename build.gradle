@@ -22,7 +22,7 @@ loom {
 	splitEnvironmentSourceSets()
 
 	mods {
-		"mcp-server-mod" {
+		"mcp-rogal" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}

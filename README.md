@@ -1,21 +1,34 @@
-# Minecraft MCP Server Mod
+# MCP-rogal
 
-A Fabric mod that implements a Model Context Protocol (MCP) server, enabling AI assistants like Claude to interact with Minecraft through structured commands.
+An MCP server for building Minecraft mods and datapacks. Point an AI assistant at your running
+game and it can write a datapack, reload it, run it, read the error the game actually produced,
+and fix it.
 
 ## Overview
 
-This mod creates an HTTP server within the Minecraft client or dedicated server that accepts MCP protocol requests, allowing Large Language Models to execute Minecraft commands safely and efficiently. The mod includes comprehensive safety validation to prevent destructive operations.
+The mod runs an HTTP server inside the Minecraft client or a dedicated server and exposes 26 MCP
+tools to it. The point of difference from a plain command bridge is that every command comes back
+with what really happened — a real success flag, the command's return value, and parse errors with
+the cursor position — so a command that ran and quietly did nothing is distinguishable from one
+that never parsed.
 
-It is designed to be fully compatible with both Single-Player (Integrated Server) and Multiplayer Dedicated Servers.
+Works in single-player (through the integrated server) and on dedicated servers. On a dedicated
+server the tools that need a screen are simply not registered.
+
+Full tool reference: **[TOOLS.md](TOOLS.md)** · Page copy: [DESCRIPTION.md](DESCRIPTION.md)
 
 ## Features
 
 - **Server and Client Support**: Works on both single-player and dedicated server environments.
 - **MCP Protocol Support**: Full implementation of Model Context Protocol for AI interaction
+- **Honest command results**: real success flag, return value, and syntax errors with a cursor
+  position — a command that runs but does nothing is distinguishable from one that never parsed
+- **Live logs**: cursor-based reads and a blocking wait-for-pattern, including in-game chat
+- **Client control**: keyboard, mouse, menus and settings, with rendered widget text readable directly
+- **Datapack loop**: sandboxed file access, `/reload`, and the pack formats this build expects
+- **Fake players**: real server-side players for testing multiplayer behaviour
 - **Safety Validation**: Comprehensive command filtering and validation system
-- **Asynchronous Execution**: Non-blocking command execution to maintain game performance
 - **Configurable Settings**: Customizable safety limits, server settings, and command permissions
-- **Real-time Feedback**: Detailed execution results including block counts and entity information
 
 ## Requirements
 
@@ -45,10 +58,10 @@ Before using AI command tools, make sure command input is allowed in your curren
 - **Single Player**: When creating a world, set **Allow Cheats** to **ON**.
 - **Multiplayer / Dedicated Server**: The player running commands must have server permission (for example, OP or equivalent permission from your server permission plugin).
 
-To keep AI interactions working while switching between applications:
-- Disable **Pause on Lost Focus** by pressing `F3 + P` in-game.
-- Minecraft will show a confirmation message when the setting is toggled.
-- If this is left enabled, the game pauses when Minecraft loses focus and AI-issued commands will not execute.
+Switching to another window while the mod drives the game is handled for you: the mod turns off
+**Pause on Lost Focus** at startup, so the pause menu never ends up covering the view and being
+reported by screenshots and screen reads. Escape still pauses. Set
+`input.preventPauseOnLostFocus` to `false` in `config/mcp.json` to keep vanilla behaviour.
 
 ### Server vs Client Modes
 
@@ -62,46 +75,71 @@ If playing Single Player, the integrated server logic runs through the client-si
 
 The mod creates a configuration file at `config/mcp.json`:
 
-```json
+```jsonc
 {
-  "server": {
-    "port": 8080,
-    "host": "localhost",
-    "enable_safety": true,
-    "max_area_size": 50,
-    "allowed_commands": ["fill", "clone", "setblock", "summon", "tp", "give"],
-    "request_timeout_ms": 30000
-  },
-  "client": {
-    "auto_start": true,
-    "show_notifications": true,
-    "log_level": "INFO",
-    "log_commands": false,
-    "save_screenshots_for_debug": false
-  },
-  "safety": {
-    "max_entities_per_command": 10,
-    "max_blocks_per_command": 125000,
-    "block_creative_for_all": true,
-    "require_op_for_admin_commands": true
-  }
+  "server": { "port": 8080, "host": "localhost", "autoStart": true,
+              "enableSafety": true, "maxAreaSize": 10, "requestTimeoutMs": 30000,
+              "allowedCommands": ["fill", "clone", "setblock", "summon", "tp", "give",
+                                  "gamemode", "effect", "enchant", "weather", "time",
+                                  "say", "tell", "title"] },
+  "client": { "showNotifications": true, "logLevel": "INFO", "logCommands": false,
+              "saveScreenshotsForDebug": false },
+  "safety": { "maxEntitiesPerCommand": 10, "maxBlocksPerCommand": 125000,
+              "blockCreativeForAll": true, "requireOpForAdminCommands": true },
+  "input":  { "enabled": true, "allowDestructiveUi": false, "maxHoldTicks": 200,
+              "preventPauseOnLostFocus": true },
+  "logs":   { "enabled": true, "bufferSize": 5000, "maxWaitMs": 60000,
+              "captureChat": true, "minLevel": "INFO", "maxBodyLogChars": 2000 },
+  "files":  { "enabled": true, "allowDelete": false, "maxFileSizeBytes": 2097152,
+              "allowedRoots": ["saves", "config", "datapacks", "resourcepacks",
+                               "logs", "crash-reports"] },
+  "fakePlayers": { "enabled": true, "maxCount": 8 },
+  "auth":   { "token": null }
 }
 ```
 
-`server.request_timeout_ms` limits how long the server waits for tool execution (including `execute_commands` and `take_screenshot`) before returning a timeout error.
+A section left out of the file falls back to its defaults, so you only need to write what you
+change.
+
+- `server.requestTimeoutMs` caps how long the server waits for a tool before reporting a timeout.
+- `logs.maxWaitMs` is separate, because `wait_for_log` is meant to block for longer than a
+  normal request.
+- `auth.token`, when set, requires an `Authorization: Bearer <token>` header. The server refuses
+  to bind to a non-loopback host without one — this endpoint runs commands, injects input and
+  writes files.
 
 ### Connecting with AI Assistants
 
-Connect your AI assistant (like Claude) to the MCP server using the endpoint:
+Point your AI assistant at the endpoint:
 ```
 http://localhost:8080/mcp
 ```
 
-The server supports three main tools:
-- `execute_commands` - Execute Minecraft commands with safety validation
-- `get_player_info` - Get comprehensive player information
-- `get_blocks_in_area` - Scan and retrieve blocks in a specified area
-- `take_screenshot` - Capture game screen with optional camera control
+It is plain streamable HTTP, so any MCP-capable client takes it. In your client's MCP config:
+
+```json
+{
+  "mcpServers": {
+    "minecraft": {
+      "url": "http://localhost:8080/mcp"
+    }
+  }
+}
+```
+
+26 tools are exposed, in five groups:
+
+| Group | Tools |
+|---|---|
+| Commands and timing | `execute_commands`, `advance_ticks`, `validate_command` |
+| Logs | `get_logs`, `wait_for_log`, `get_crash_reports` |
+| Datapacks | `files`, `reload_datapacks`, `get_world_info`, `list_ids`, `describe_block_state` |
+| Multiplayer | `fake_players` |
+| Client control | `press_key`, `type_text`, `send_keybind`, `list_keybinds`, `mouse`, `get_open_screen`, `click_widget`, `open_screen`, `options`, `reload_resources`, `rejoin_world`, `take_screenshot` |
+
+Plus `get_player_info` and `get_blocks_in_area`.
+
+**[TOOLS.md](TOOLS.md) documents every one of them**, with the arguments and the traps.
 
 ### Example Commands
 
@@ -145,7 +183,7 @@ The AI can execute commands like:
 
 ```
 src/
-├── main/java/cuspymd/mcp/mod/
+├── main/java/org/wallet/rogalik/mcp/
 │   ├── MCPServerMod.java           # Main mod class
 │   ├── MCPServerModClient.java     # Client initializer
 │   ├── server/                     # MCP server implementation
@@ -159,127 +197,48 @@ src/
 
 ## API Reference
 
-### MCP Endpoints
+The endpoint speaks JSON-RPC over a single HTTP path, `POST /mcp`, with the standard MCP methods:
+`initialize`, `ping`, `tools/list`, `tools/call`.
 
-- `POST /mcp/initialize` - Initialize MCP session
-- `POST /mcp/ping` - Health check
-- `POST /mcp/tools/list` - List available tools
-- `POST /mcp/tools/call` - Execute commands
+Every tool's arguments and response are described in **[TOOLS.md](TOOLS.md)**; the schemas are
+also served by `tools/list`, so an assistant discovers them on its own.
 
-### Tool: execute_commands
+One thing worth stating here, because it is the behaviour most likely to surprise anyone coming
+from a plain command bridge — `execute_commands` reports per command:
 
-Execute one or more Minecraft commands sequentially with safety validation.
+| field | meaning |
+|---|---|
+| `success` | whether the command reported success |
+| `result` | the command's return value, the number `/execute store` would capture |
+| `error`, `errorType` | `parse` (with `cursor`), `runtime`, `safety`, `skipped`, or null |
+| `messages` | the feedback the command produced |
 
-**Parameters:**
-- `commands` (array): List of Minecraft commands (without leading slash)
-- `validate_safety` (boolean): Enable safety validation (default: true)
+So these are three distinguishable outcomes:
 
-**Response schema (text payload JSON):**
-- Top-level: `totalCommands`, `acceptedCount`, `appliedCount`, `failedCount`, `results`, `chatMessages`
-- Per command: `index`, `command`, `status`, `accepted`, `applied`, `summary`, `chatMessages`
-- `status` values: `applied`, `rejected_by_game`, `execution_error`, `timed_out`, `rejected_by_safety`, `unknown`
+```
+time set day                            → success=true    result=1000
+setblock ~ ~ ~ minecraft:not_a_block    → errorType=parse  cursor=15
+execute if block ~ ~ ~ bedrock run say  → success=false    error=null
+```
 
-**Example Request:**
+The last is a command that parsed, ran, and did nothing — a condition that did not match, a
+function that returned early, a trigger that was never armed.
+
+`/function` reports `success=false` and `result=0` unless the function ends with `/return`. That
+is vanilla behaviour, not a failure.
+
+The legacy `status` / `accepted` / `applied` fields are still present and derived from the same
+data, so older clients keep working.
+
+**Example request:**
 ```json
 {
   "method": "tools/call",
   "params": {
     "name": "execute_commands",
     "arguments": {
-      "commands": [
-        "fill ~ ~ ~ ~10 ~5 ~8 oak_planks",
-        "setblock ~5 ~6 ~4 oak_door"
-      ],
-      "validate_safety": true
-    }
-  }
-}
-```
-
-### Tool: get_player_info
-
-Get comprehensive player information including position, facing direction, health, inventory, and game state.
-
-**Parameters:** None required
-
-**Response includes:**
-- Exact position (x, y, z coordinates) and block coordinates
-- Facing direction (yaw, pitch, cardinal direction)  
-- Calculated front position for building (3 blocks ahead)
-- Look vector for directional calculations
-- Health, food, and experience status
-- Current game mode and dimension
-- World time information
-- Inventory details (selected slot, main/off-hand items)
-
-**Example Request:**
-```json
-{
-  "method": "tools/call",
-  "params": {
-    "name": "get_player_info",
-    "arguments": {}
-  }
-}
-```
-
-### Tool: get_blocks_in_area
-
-Scan and retrieve all non-air blocks within a specified rectangular area. Useful for analyzing structures or checking build areas.
-
-**Parameters:**
-- `from` (object): Starting position with x, y, z coordinates
-- `to` (object): Ending position with x, y, z coordinates
-
-**Response includes:**
-- List of all non-air blocks in the area
-- Block types and positions
-- Total block count
-- Area dimensions and validation info
-
-**Example Request:**
-```json
-{
-  "method": "tools/call", 
-  "params": {
-    "name": "get_blocks_in_area",
-    "arguments": {
-      "from": {"x": 100, "y": 64, "z": 200},
-      "to": {"x": 110, "y": 74, "z": 210}
-    }
-  }
-}
-```
-
-**Note:** Maximum area size per axis is limited by server configuration (default: 50 blocks).
-
-### Tool: take_screenshot
-
-Capture a screenshot of the current Minecraft game screen. Optionally, you can specify coordinates and rotation to move the player and set their gaze before taking the screenshot.
-
-**Parameters:**
-- `x` (number, optional): X coordinate to teleport the player to.
-- `y` (number, optional): Y coordinate to teleport the player to.
-- `z` (number, optional): Z coordinate to teleport the player to.
-- `yaw` (number, optional): Yaw rotation (0-360) for horizontal view.
-- `pitch` (number, optional): Pitch rotation (-90 to 90) for vertical view.
-
-**Response includes:**
-- Base64 encoded PNG image data.
-- MIME type (`image/png`).
-
-**Example Request:**
-```json
-{
-  "method": "tools/call",
-  "params": {
-    "name": "take_screenshot",
-    "arguments": {
-      "x": 120.5,
-      "y": 70,
-      "z": -200.5,
-      "yaw": 180,
-      "pitch": 0
+      "commands": ["fill ~ ~ ~ ~10 ~5 ~8 oak_planks", "setblock ~5 ~6 ~4 oak_door"],
+      "wait_ticks": 1
     }
   }
 }

@@ -32,7 +32,7 @@ Advanced integration testing can be performed using the [Fabric Game Test API](h
 ### Manual Verification Steps
 
 1. Launch the Minecraft client with the mod installed.
-2. Connect an AI agent or use an MCP client (like Claude Desktop).
+2. Connect any MCP-capable client to the endpoint.
 3. Call the `take_screenshot` tool with specific coordinates.
 4. Verify that:
    - The player is teleported to the correct location.
