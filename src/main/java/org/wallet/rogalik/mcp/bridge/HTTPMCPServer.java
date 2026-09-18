@@ -1,6 +1,7 @@
 package org.wallet.rogalik.mcp.bridge;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.sun.net.httpserver.HttpExchange;
@@ -158,10 +159,10 @@ public class HTTPMCPServer {
 
             } catch (Exception e) {
                 LOGGER.error("Error processing MCP request: {}", summarizeForLog(requestBody), e);
-                Integer requestId = null;
+                JsonElement requestId = null;
                 try {
                     JsonObject request = JsonParser.parseString(requestBody).getAsJsonObject();
-                    requestId = request.has("id") ? request.get("id").getAsInt() : null;
+                    requestId = request.has("id") ? request.get("id") : null;
                 } catch (Exception ignored) {
                     // Unable to parse request ID
                 }
@@ -206,7 +207,7 @@ public class HTTPMCPServer {
             }
         }
 
-        private void sendErrorResponse(HttpExchange exchange, int statusCode, String message, Integer requestId) throws IOException {
+        private void sendErrorResponse(HttpExchange exchange, int statusCode, String message, JsonElement requestId) throws IOException {
             JsonObject errorResponse = createErrorResponse(message, requestId);
             sendJsonResponse(exchange, statusCode, errorResponse);
         }
@@ -274,7 +275,9 @@ public class HTTPMCPServer {
     JsonObject handleMCPRequest(JsonObject request) {
         String method = request.get("method").getAsString();
         JsonObject params = request.has("params") ? request.getAsJsonObject("params") : new JsonObject();
-        Integer requestId = request.has("id") ? request.get("id").getAsInt() : null;
+        // JSON-RPC 2.0 allows the id to be a string, a number, or absent/null - never assume it's
+        // numeric (a client-generated id like "server-discover-probe-1" is legal and common).
+        JsonElement requestId = request.has("id") ? request.get("id") : null;
 
         // Handle notifications - no response needed
         if (method.startsWith("notifications/")) {
@@ -357,21 +360,21 @@ public class HTTPMCPServer {
         return error;
     }
 
-    private JsonObject createSuccessResponse(JsonObject result, Integer requestId) {
+    private JsonObject createSuccessResponse(JsonObject result, JsonElement requestId) {
         JsonObject response = new JsonObject();
         response.addProperty("jsonrpc", "2.0");
         if (requestId != null) {
-            response.addProperty("id", requestId);
+            response.add("id", requestId);
         }
         response.add("result", result);
         return response;
     }
 
-    private JsonObject createErrorResponse(String message, Integer requestId) {
+    private JsonObject createErrorResponse(String message, JsonElement requestId) {
         JsonObject response = new JsonObject();
         response.addProperty("jsonrpc", "2.0");
         if (requestId != null) {
-            response.addProperty("id", requestId);
+            response.add("id", requestId);
         }
 
         JsonObject error = new JsonObject();
