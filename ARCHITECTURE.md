@@ -4,9 +4,9 @@ Orientation for anyone working on this codebase, human or agent.
 
 ## What this is
 
-**MCP-rogal** — a Fabric mod for Minecraft 26.2 that runs an HTTP MCP server and exposes 26 tools
+**MCP-rogal** — a Fabric mod for Minecraft 26.3 that runs an HTTP MCP server and exposes 26 tools
 aimed at developing mods and datapacks. Started from
-[cuspymd/mcp-server-mod](https://github.com/cuspymd/mcp-server-mod) (CC0-1.0).
+[cuspymd/mcp-server-mod](https://github.com/cuspymd/mcp-server-mod) (CC0-1.0), relicensed MIT.
 
 Mod id `mcp-rogal`, package `org.wallet.rogalik.mcp`, endpoint `http://localhost:8080/mcp`.
 
@@ -37,10 +37,12 @@ A world must be loaded for most tools. The mod's own tools can drive the menus t
 
 ## Checking Minecraft APIs
 
-26.2 renamed and restructured a lot. **Never guess a signature** — check it:
+Minecraft's own code keeps renaming and restructuring things between versions. **Never guess a
+signature** — check it (this project is plain Fabric, no NeoForge involved, so there's no merged
+jar — `clientonly` for client classes, `common` for everything else):
 
 ```powershell
-$jar="$env:USERPROFILE\.gradle\caches\fabric-loom\26.2\neoforge\26.2.0.51-beta\minecraft-merged-official.jar"
+$jar="$env:USERPROFILE\.gradle\caches\fabric-loom\minecraftMaven\net\minecraft\minecraft-clientonly-deobf\26.3\minecraft-clientonly-deobf-26.3.jar"
 javap -p -cp $jar net.minecraft.client.MouseHandler
 ```
 

@@ -59,11 +59,11 @@ Modrinth asks this as a separate step:
 
 ## Version metadata
 
-- **Version:** `1.3.0+mc26.2` — bump `mod_version` in `gradle.properties` before publishing
-- **Minecraft:** 26.2
+- **Version:** `1.3.1+mc26.3` — bump `mod_version` in `gradle.properties` before publishing
+- **Minecraft:** 26.3
 - **Loader:** Fabric
-- **Dependencies:** Fabric API (required), Fabric Loader 0.19.3+, Java 25+
-- **License:** CC0-1.0
+- **Dependencies:** Fabric API (required), Fabric Loader 0.19.5+, Java 25+
+- **License:** MIT
 
 ## Before publishing
 

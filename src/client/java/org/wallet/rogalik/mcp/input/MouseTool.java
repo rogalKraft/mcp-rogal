@@ -5,8 +5,8 @@ import org.wallet.rogalik.mcp.config.MCPConfig;
 import org.wallet.rogalik.mcp.server.MCPProtocol;
 import org.wallet.rogalik.mcp.server.tools.McpTool;
 import org.wallet.rogalik.mcp.server.tools.SchemaBuilder;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 import java.util.OptionalInt;
@@ -106,8 +106,8 @@ public class MouseTool implements McpTool {
                         }
                         switch (action) {
                             case "click" -> InputDispatcher.clickMouse(button.getAsInt(), mask);
-                            case "press" -> InputDispatcher.mouseButton(button.getAsInt(), mask, GLFW.GLFW_PRESS);
-                            default -> InputDispatcher.mouseButton(button.getAsInt(), mask, GLFW.GLFW_RELEASE);
+                            case "press" -> InputDispatcher.mouseButton(button.getAsInt(), mask, InputConstants.PRESS);
+                            default -> InputDispatcher.mouseButton(button.getAsInt(), mask, InputConstants.RELEASE);
                         }
                     });
                     if (target != null) {
@@ -130,9 +130,9 @@ public class MouseTool implements McpTool {
                 case "drag" -> {
                     double[] target = resolve(arguments, useWindowSpace);
                     runAndWait(() -> {
-                        InputDispatcher.mouseButton(button.getAsInt(), mask, GLFW.GLFW_PRESS);
+                        InputDispatcher.mouseButton(button.getAsInt(), mask, InputConstants.PRESS);
                         InputDispatcher.moveMouse(target[0], target[1]);
-                        InputDispatcher.mouseButton(button.getAsInt(), mask, GLFW.GLFW_RELEASE);
+                        InputDispatcher.mouseButton(button.getAsInt(), mask, InputConstants.RELEASE);
                     });
                     describePosition(result, target, useWindowSpace);
                 }

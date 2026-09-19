@@ -35,7 +35,8 @@ public class OpenScreenTool implements McpTool {
     static {
         SCREENS.put("title", parent -> new TitleScreen());
         SCREENS.put("pause", parent -> new PauseScreen(true));
-        SCREENS.put("options", parent -> new OptionsScreen(parent, options(), false));
+        // The trailing boolean (whether this options screen was opened mid-game) is gone in 26.3.
+        SCREENS.put("options", parent -> new OptionsScreen(parent, options()));
         SCREENS.put("options.video", parent -> new VideoSettingsScreen(parent, Minecraft.getInstance(), options()));
         SCREENS.put("options.sound", parent -> new SoundOptionsScreen(parent, options()));
         SCREENS.put("options.accessibility", parent -> new AccessibilityOptionsScreen(parent, options()));

@@ -63,8 +63,8 @@ public class TypeTextTool implements McpTool {
             InputDispatcher.onClientThread(() -> {
                 InputDispatcher.typeText(text);
                 if (pressEnter) {
-                    InputDispatcher.pressKey(org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER, 0);
-                    InputDispatcher.releaseKey(org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER, 0);
+                    InputDispatcher.pressKey(com.mojang.blaze3d.platform.InputConstants.KEY_RETURN, 0);
+                    InputDispatcher.releaseKey(com.mojang.blaze3d.platform.InputConstants.KEY_RETURN, 0);
                 }
             }).get(config.getServer().getRequestTimeoutMs(), TimeUnit.MILLISECONDS);
         } catch (Exception e) {

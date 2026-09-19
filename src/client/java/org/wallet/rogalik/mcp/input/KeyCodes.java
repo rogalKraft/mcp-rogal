@@ -1,6 +1,7 @@
 package org.wallet.rogalik.mcp.input;
 
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
+import org.lwjgl.sdl.SDLScancode;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -10,11 +11,13 @@ import java.util.OptionalInt;
 import java.util.TreeMap;
 
 /**
- * Translates human-friendly key and button names into GLFW codes.
+ * Translates human-friendly key and button names into key codes.
  *
- * <p>Deliberately built on {@code GLFW} integer constants rather than {@code InputConstants}: the
- * constants inline at compile time, so this class stays pure and can be unit tested without a
- * window, a GL context or an initialised game.
+ * <p>Built on {@code InputConstants} rather than raw platform codes: the constants inline at
+ * compile time, so this class stays pure and can be unit tested without a window, a GL context or
+ * an initialised game. Minecraft 26.3 replaced GLFW with SDL3 for windowing and input, so these
+ * used to be {@code GLFW_KEY_*}; a handful of numpad keys (subtract/divide/decimal) aren't exposed
+ * by {@code InputConstants} at all and fall back to the raw {@code SDLScancode} they wrap.
  */
 public final class KeyCodes {
 
@@ -22,117 +25,145 @@ public final class KeyCodes {
     private static final Map<Integer, String> NAMES_BY_KEY = new TreeMap<>();
     private static final Map<String, Integer> MOUSE_BUTTONS = new LinkedHashMap<>();
 
-    /** Modifier name to the GLFW modifier bit reported alongside an event. */
+    /** Modifier name to the modifier bit reported alongside an event. */
     private static final Map<String, Integer> MODIFIER_MASKS = Map.of(
-        "shift", GLFW.GLFW_MOD_SHIFT,
-        "ctrl", GLFW.GLFW_MOD_CONTROL,
-        "control", GLFW.GLFW_MOD_CONTROL,
-        "alt", GLFW.GLFW_MOD_ALT,
-        "super", GLFW.GLFW_MOD_SUPER,
-        "cmd", GLFW.GLFW_MOD_SUPER,
-        "meta", GLFW.GLFW_MOD_SUPER
+        "shift", InputConstants.MOD_SHIFT,
+        "ctrl", InputConstants.MOD_CONTROL,
+        "control", InputConstants.MOD_CONTROL,
+        "alt", InputConstants.MOD_ALT,
+        "super", InputConstants.MOD_SUPER,
+        "cmd", InputConstants.MOD_SUPER,
+        "meta", InputConstants.MOD_SUPER
     );
 
     /** Modifier name to the physical key that must be held for the game to see it pressed. */
     private static final Map<String, Integer> MODIFIER_KEYS = Map.of(
-        "shift", GLFW.GLFW_KEY_LEFT_SHIFT,
-        "ctrl", GLFW.GLFW_KEY_LEFT_CONTROL,
-        "control", GLFW.GLFW_KEY_LEFT_CONTROL,
-        "alt", GLFW.GLFW_KEY_LEFT_ALT,
-        "super", GLFW.GLFW_KEY_LEFT_SUPER,
-        "cmd", GLFW.GLFW_KEY_LEFT_SUPER,
-        "meta", GLFW.GLFW_KEY_LEFT_SUPER
+        "shift", InputConstants.KEY_LSHIFT,
+        "ctrl", InputConstants.KEY_LCONTROL,
+        "control", InputConstants.KEY_LCONTROL,
+        "alt", InputConstants.KEY_LALT,
+        "super", InputConstants.KEY_LGUI,
+        "cmd", InputConstants.KEY_LGUI,
+        "meta", InputConstants.KEY_LGUI
     );
 
     static {
         for (char c = 'a'; c <= 'z'; c++) {
-            put(String.valueOf(c), GLFW.GLFW_KEY_A + (c - 'a'));
+            put(String.valueOf(c), InputConstants.KEY_A + (c - 'a'));
         }
-        for (char c = '0'; c <= '9'; c++) {
-            put(String.valueOf(c), GLFW.GLFW_KEY_0 + (c - '0'));
+        // Digits aren't offset-from-KEY_0 under SDL's scancode layout the way they were under
+        // GLFW - scancode 0 sits after 9, not before 1 - so each one is named explicitly instead
+        // of computed. Same story for the numpad row just below.
+        put("0", InputConstants.KEY_0);
+        put("1", InputConstants.KEY_1);
+        put("2", InputConstants.KEY_2);
+        put("3", InputConstants.KEY_3);
+        put("4", InputConstants.KEY_4);
+        put("5", InputConstants.KEY_5);
+        put("6", InputConstants.KEY_6);
+        put("7", InputConstants.KEY_7);
+        put("8", InputConstants.KEY_8);
+        put("9", InputConstants.KEY_9);
+
+        // F1-F12 are sequential from KEY_F1, but F13-F24 are a separate block under SDL, not a
+        // continuation - the same "not actually contiguous" trap as the digits, caught the same
+        // way, by an explicit F13 anchor instead of extending the F1 loop past F12.
+        for (int i = 1; i <= 12; i++) {
+            put("f" + i, InputConstants.KEY_F1 + (i - 1));
         }
-        for (int i = 1; i <= 25; i++) {
-            put("f" + i, GLFW.GLFW_KEY_F1 + (i - 1));
+        for (int i = 13; i <= 24; i++) {
+            put("f" + i, InputConstants.KEY_F13 + (i - 13));
         }
-        for (int i = 0; i <= 9; i++) {
-            put("numpad" + i, GLFW.GLFW_KEY_KP_0 + i);
-        }
+        // F25 existed under GLFW but SDL's scancode set stops at F24 - no key to map it to.
 
-        put("escape", GLFW.GLFW_KEY_ESCAPE);
-        put("esc", GLFW.GLFW_KEY_ESCAPE);
-        put("enter", GLFW.GLFW_KEY_ENTER);
-        put("return", GLFW.GLFW_KEY_ENTER);
-        put("tab", GLFW.GLFW_KEY_TAB);
-        put("backspace", GLFW.GLFW_KEY_BACKSPACE);
-        put("insert", GLFW.GLFW_KEY_INSERT);
-        put("delete", GLFW.GLFW_KEY_DELETE);
-        put("space", GLFW.GLFW_KEY_SPACE);
+        put("numpad0", InputConstants.KEY_NUMPAD0);
+        put("numpad1", InputConstants.KEY_NUMPAD1);
+        put("numpad2", InputConstants.KEY_NUMPAD2);
+        put("numpad3", InputConstants.KEY_NUMPAD3);
+        put("numpad4", InputConstants.KEY_NUMPAD4);
+        put("numpad5", InputConstants.KEY_NUMPAD5);
+        put("numpad6", InputConstants.KEY_NUMPAD6);
+        put("numpad7", InputConstants.KEY_NUMPAD7);
+        put("numpad8", InputConstants.KEY_NUMPAD8);
+        put("numpad9", InputConstants.KEY_NUMPAD9);
 
-        put("right", GLFW.GLFW_KEY_RIGHT);
-        put("left", GLFW.GLFW_KEY_LEFT);
-        put("down", GLFW.GLFW_KEY_DOWN);
-        put("up", GLFW.GLFW_KEY_UP);
-        put("pageup", GLFW.GLFW_KEY_PAGE_UP);
-        put("pagedown", GLFW.GLFW_KEY_PAGE_DOWN);
-        put("home", GLFW.GLFW_KEY_HOME);
-        put("end", GLFW.GLFW_KEY_END);
+        put("escape", InputConstants.KEY_ESCAPE);
+        put("esc", InputConstants.KEY_ESCAPE);
+        put("enter", InputConstants.KEY_RETURN);
+        put("return", InputConstants.KEY_RETURN);
+        put("tab", InputConstants.KEY_TAB);
+        put("backspace", InputConstants.KEY_BACKSPACE);
+        put("insert", InputConstants.KEY_INSERT);
+        put("delete", InputConstants.KEY_DELETE);
+        put("space", InputConstants.KEY_SPACE);
 
-        put("capslock", GLFW.GLFW_KEY_CAPS_LOCK);
-        put("scrolllock", GLFW.GLFW_KEY_SCROLL_LOCK);
-        put("numlock", GLFW.GLFW_KEY_NUM_LOCK);
-        put("printscreen", GLFW.GLFW_KEY_PRINT_SCREEN);
-        put("pause", GLFW.GLFW_KEY_PAUSE);
+        put("right", InputConstants.KEY_RIGHT);
+        put("left", InputConstants.KEY_LEFT);
+        put("down", InputConstants.KEY_DOWN);
+        put("up", InputConstants.KEY_UP);
+        put("pageup", InputConstants.KEY_PAGEUP);
+        put("pagedown", InputConstants.KEY_PAGEDOWN);
+        put("home", InputConstants.KEY_HOME);
+        put("end", InputConstants.KEY_END);
 
-        put("lshift", GLFW.GLFW_KEY_LEFT_SHIFT);
-        put("rshift", GLFW.GLFW_KEY_RIGHT_SHIFT);
-        put("lcontrol", GLFW.GLFW_KEY_LEFT_CONTROL);
-        put("lctrl", GLFW.GLFW_KEY_LEFT_CONTROL);
-        put("rcontrol", GLFW.GLFW_KEY_RIGHT_CONTROL);
-        put("rctrl", GLFW.GLFW_KEY_RIGHT_CONTROL);
-        put("lalt", GLFW.GLFW_KEY_LEFT_ALT);
-        put("ralt", GLFW.GLFW_KEY_RIGHT_ALT);
-        put("lsuper", GLFW.GLFW_KEY_LEFT_SUPER);
-        put("rsuper", GLFW.GLFW_KEY_RIGHT_SUPER);
+        put("capslock", InputConstants.KEY_CAPSLOCK);
+        put("scrolllock", InputConstants.KEY_SCROLLLOCK);
+        put("numlock", InputConstants.KEY_NUMLOCK);
+        put("printscreen", InputConstants.KEY_PRINTSCREEN);
+        put("pause", InputConstants.KEY_PAUSE);
+
+        put("lshift", InputConstants.KEY_LSHIFT);
+        put("rshift", InputConstants.KEY_RSHIFT);
+        put("lcontrol", InputConstants.KEY_LCONTROL);
+        put("lctrl", InputConstants.KEY_LCONTROL);
+        put("rcontrol", InputConstants.KEY_RCONTROL);
+        put("rctrl", InputConstants.KEY_RCONTROL);
+        put("lalt", InputConstants.KEY_LALT);
+        put("ralt", InputConstants.KEY_RALT);
+        put("lsuper", InputConstants.KEY_LGUI);
+        put("rsuper", InputConstants.KEY_RGUI);
 
         // Minecraft spells these out as key.keyboard.left.shift, which normalises to "leftshift".
-        put("leftshift", GLFW.GLFW_KEY_LEFT_SHIFT);
-        put("rightshift", GLFW.GLFW_KEY_RIGHT_SHIFT);
-        put("leftcontrol", GLFW.GLFW_KEY_LEFT_CONTROL);
-        put("rightcontrol", GLFW.GLFW_KEY_RIGHT_CONTROL);
-        put("leftalt", GLFW.GLFW_KEY_LEFT_ALT);
-        put("rightalt", GLFW.GLFW_KEY_RIGHT_ALT);
-        put("leftsuper", GLFW.GLFW_KEY_LEFT_SUPER);
-        put("rightsuper", GLFW.GLFW_KEY_RIGHT_SUPER);
-        put("leftwin", GLFW.GLFW_KEY_LEFT_SUPER);
-        put("rightwin", GLFW.GLFW_KEY_RIGHT_SUPER);
-        put("keypadenter", GLFW.GLFW_KEY_KP_ENTER);
+        put("leftshift", InputConstants.KEY_LSHIFT);
+        put("rightshift", InputConstants.KEY_RSHIFT);
+        put("leftcontrol", InputConstants.KEY_LCONTROL);
+        put("rightcontrol", InputConstants.KEY_RCONTROL);
+        put("leftalt", InputConstants.KEY_LALT);
+        put("rightalt", InputConstants.KEY_RALT);
+        put("leftsuper", InputConstants.KEY_LGUI);
+        put("rightsuper", InputConstants.KEY_RGUI);
+        put("leftwin", InputConstants.KEY_LGUI);
+        put("rightwin", InputConstants.KEY_RGUI);
+        put("keypadenter", InputConstants.KEY_NUMPADENTER);
 
-        put("apostrophe", GLFW.GLFW_KEY_APOSTROPHE);
-        put("comma", GLFW.GLFW_KEY_COMMA);
-        put("minus", GLFW.GLFW_KEY_MINUS);
-        put("period", GLFW.GLFW_KEY_PERIOD);
-        put("slash", GLFW.GLFW_KEY_SLASH);
-        put("semicolon", GLFW.GLFW_KEY_SEMICOLON);
-        put("equal", GLFW.GLFW_KEY_EQUAL);
-        put("leftbracket", GLFW.GLFW_KEY_LEFT_BRACKET);
-        put("backslash", GLFW.GLFW_KEY_BACKSLASH);
-        put("rightbracket", GLFW.GLFW_KEY_RIGHT_BRACKET);
-        put("grave", GLFW.GLFW_KEY_GRAVE_ACCENT);
+        put("apostrophe", InputConstants.KEY_APOSTROPHE);
+        put("comma", InputConstants.KEY_COMMA);
+        put("minus", InputConstants.KEY_MINUS);
+        put("period", InputConstants.KEY_PERIOD);
+        put("slash", InputConstants.KEY_SLASH);
+        put("semicolon", InputConstants.KEY_SEMICOLON);
+        put("equal", InputConstants.KEY_EQUALS);
+        put("leftbracket", InputConstants.KEY_LBRACKET);
+        put("backslash", InputConstants.KEY_BACKSLASH);
+        put("rightbracket", InputConstants.KEY_RBRACKET);
+        put("grave", InputConstants.KEY_GRAVE);
 
-        put("numpadadd", GLFW.GLFW_KEY_KP_ADD);
-        put("numpadsubtract", GLFW.GLFW_KEY_KP_SUBTRACT);
-        put("numpadmultiply", GLFW.GLFW_KEY_KP_MULTIPLY);
-        put("numpaddivide", GLFW.GLFW_KEY_KP_DIVIDE);
-        put("numpaddecimal", GLFW.GLFW_KEY_KP_DECIMAL);
-        put("numpadenter", GLFW.GLFW_KEY_KP_ENTER);
-        put("numpadequal", GLFW.GLFW_KEY_KP_EQUAL);
+        put("numpadadd", InputConstants.KEY_ADD);
+        put("numpadsubtract", SDLScancode.SDL_SCANCODE_KP_MINUS);
+        put("numpadmultiply", InputConstants.KEY_MULTIPLY);
+        put("numpaddivide", SDLScancode.SDL_SCANCODE_KP_DIVIDE);
+        put("numpaddecimal", SDLScancode.SDL_SCANCODE_KP_DECIMAL);
+        put("numpadenter", InputConstants.KEY_NUMPADENTER);
+        put("numpadequal", InputConstants.KEY_NUMPADEQUALS);
 
-        MOUSE_BUTTONS.put("left", GLFW.GLFW_MOUSE_BUTTON_LEFT);
-        MOUSE_BUTTONS.put("right", GLFW.GLFW_MOUSE_BUTTON_RIGHT);
-        MOUSE_BUTTONS.put("middle", GLFW.GLFW_MOUSE_BUTTON_MIDDLE);
-        for (int i = 4; i <= 8; i++) {
-            MOUSE_BUTTONS.put("button" + i, i - 1);
-        }
+        MOUSE_BUTTONS.put("left", InputConstants.MOUSE_BUTTON_LEFT);
+        MOUSE_BUTTONS.put("right", InputConstants.MOUSE_BUTTON_RIGHT);
+        MOUSE_BUTTONS.put("middle", InputConstants.MOUSE_BUTTON_MIDDLE);
+        MOUSE_BUTTONS.put("button4", InputConstants.MOUSE_BUTTON_4);
+        MOUSE_BUTTONS.put("button5", InputConstants.MOUSE_BUTTON_5);
+        MOUSE_BUTTONS.put("button6", InputConstants.MOUSE_BUTTON_6);
+        MOUSE_BUTTONS.put("button7", InputConstants.MOUSE_BUTTON_7);
+        MOUSE_BUTTONS.put("button8", InputConstants.MOUSE_BUTTON_8);
     }
 
     private KeyCodes() {
@@ -183,11 +214,11 @@ public final class KeyCodes {
 
     public static OptionalInt mouseButtonByName(String name) {
         if (name == null) {
-            return OptionalInt.of(GLFW.GLFW_MOUSE_BUTTON_LEFT);
+            return OptionalInt.of(InputConstants.MOUSE_BUTTON_LEFT);
         }
         String normalized = name.trim().toLowerCase(Locale.ROOT);
         if (normalized.isEmpty()) {
-            return OptionalInt.of(GLFW.GLFW_MOUSE_BUTTON_LEFT);
+            return OptionalInt.of(InputConstants.MOUSE_BUTTON_LEFT);
         }
 
         Integer direct = MOUSE_BUTTONS.get(normalized);

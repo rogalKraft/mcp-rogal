@@ -7,7 +7,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 /**
- * Exposes the private GLFW callback targets on {@link KeyboardHandler}.
+ * Exposes the private window-callback targets on {@link KeyboardHandler} (GLFW callbacks before
+ * Minecraft 26.3, SDL3 since - the signatures here didn't change between the two).
  *
  * <p>Driving these is what makes simulated input behave like real input: the same method the
  * window callback calls also feeds the open screen, text fields and key bindings. Setting

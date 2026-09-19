@@ -1,7 +1,8 @@
 # Tool reference
 
 26 tools, grouped by what they are for. Everything here was verified against a running
-Minecraft 26.2 client.
+Minecraft 26.2 client; the mod now targets 26.3 (server boots and the HTTP endpoint responds,
+but the individual tools below haven't each been re-walked against 26.3 yet).
 
 ## Running commands
 

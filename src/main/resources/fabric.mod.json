@@ -7,15 +7,15 @@
 	"authors": [
 		"rogalKraft"
 	],
-	"credits": [
-		"cuspymd - original mcp-server-mod this project started from"
-	],
+	"custom": {
+		"mcp-rogal:based_on": "cuspymd/mcp-server-mod - original project this one started from"
+	},
 	"contact": {
 		"homepage": "https://github.com/rogalKraft/mcp-rogal",
 		"sources": "https://github.com/rogalKraft/mcp-rogal",
 		"issues": "https://github.com/rogalKraft/mcp-rogal/issues"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/mcp-rogal/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -37,8 +37,8 @@
 		}
 	],
 	"depends": {
-		"fabricloader": ">=0.19.3",
-		"minecraft": "~26.2",
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
 		"java": ">=25",
 		"fabric-api": "*"
 	}

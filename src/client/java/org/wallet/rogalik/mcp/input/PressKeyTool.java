@@ -8,7 +8,7 @@ import org.wallet.rogalik.mcp.server.MCPProtocol;
 import org.wallet.rogalik.mcp.server.tools.McpTool;
 import org.wallet.rogalik.mcp.server.tools.SchemaBuilder;
 import org.wallet.rogalik.mcp.utils.ClientTickScheduler;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -180,8 +180,8 @@ public class PressKeyTool implements McpTool {
         return modifiers;
     }
 
-    /** Exposed so sibling tools can reuse the same GLFW action constant. */
+    /** Exposed so sibling tools can reuse the same action constant. */
     static int pressAction() {
-        return GLFW.GLFW_PRESS;
+        return InputConstants.PRESS;
     }
 }

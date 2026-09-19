@@ -116,9 +116,9 @@ public class SendKeybindTool implements McpTool {
         }
 
         await(InputDispatcher.onClientThread(
-            () -> InputDispatcher.mouseButton(button, 0, org.lwjgl.glfw.GLFW.GLFW_PRESS)));
+            () -> InputDispatcher.mouseButton(button, 0, com.mojang.blaze3d.platform.InputConstants.PRESS)));
         await(scheduleRelease(
-            () -> InputDispatcher.mouseButton(button, 0, org.lwjgl.glfw.GLFW.GLFW_RELEASE), holdTicks));
+            () -> InputDispatcher.mouseButton(button, 0, com.mojang.blaze3d.platform.InputConstants.RELEASE), holdTicks));
     }
 
     private CompletableFuture<Void> scheduleRelease(Runnable release, int holdTicks) {

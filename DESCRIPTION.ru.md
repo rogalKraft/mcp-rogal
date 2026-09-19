@@ -5,7 +5,7 @@
 Направь ИИ-ассистента на запущенную игру — и он напишет датапак, перезагрузит его, выполнит,
 прочитает ошибку, которую игра действительно выдала, и починит. Без пересказа руками.
 
-26 инструментов, Fabric, Minecraft 26.2.
+26 инструментов, Fabric, Minecraft 26.3.
 
 ---
 
@@ -92,9 +92,9 @@ execute if block ~ ~ ~ bedrock run say  → success=false    error=null
 
 ## Установка
 
-**Требуется:** Minecraft 26.2 · Fabric Loader 0.19.3+ · Fabric API · Java 25+
+**Требуется:** Minecraft 26.3 · Fabric Loader 0.19.5+ · Fabric API · Java 25+
 
-1. Поставь [Fabric Loader](https://fabricmc.net/use/installer/) под 26.2
+1. Поставь [Fabric Loader](https://fabricmc.net/use/installer/) под 26.3
 2. Положи [Fabric API](https://modrinth.com/mod/fabric-api) в `mods/`
 3. Положи туда же jar этого мода
 4. Запусти игру
@@ -234,6 +234,6 @@ http и URL.
 Построено на основе [mcp-server-mod](https://github.com/cuspymd/mcp-server-mod) от **cuspymd** —
 оттуда исходный HTTP-мост MCP, валидатор безопасности команд и сканер блоков.
 
-Лицензия **CC0-1.0**, как и у оригинала: общественное достояние, без условий.
+Лицензия **MIT** (у оригинального mcp-server-mod — CC0-1.0; этот проект перелицензирован 20.08.2026).
 
 Полный справочник по инструментам: [TOOLS.md](TOOLS.md) · English: [DESCRIPTION.md](DESCRIPTION.md)

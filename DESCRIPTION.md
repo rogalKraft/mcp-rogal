@@ -5,7 +5,7 @@
 Point an AI assistant at your running game and it can write a datapack, reload it, run it, read
 the error the game actually produced, and fix it — without you relaying anything by hand.
 
-26 tools, Fabric, Minecraft 26.2.
+26 tools, Fabric, Minecraft 26.3.
 
 ---
 
@@ -94,9 +94,9 @@ What they cannot do: press a button in a dialog. That needs a client.
 
 ## Setup
 
-**Requires:** Minecraft 26.2 · Fabric Loader 0.19.3+ · Fabric API · Java 25+
+**Requires:** Minecraft 26.3 · Fabric Loader 0.19.5+ · Fabric API · Java 25+
 
-1. Install [Fabric Loader](https://fabricmc.net/use/installer/) for 26.2
+1. Install [Fabric Loader](https://fabricmc.net/use/installer/) for 26.3
 2. Put [Fabric API](https://modrinth.com/mod/fabric-api) in `mods/`
 3. Put this mod's jar there too
 4. Start the game
@@ -237,6 +237,6 @@ ends with `/return`. Check the world state, or add a `/return`.
 Built on top of [mcp-server-mod](https://github.com/cuspymd/mcp-server-mod) by **cuspymd**, which
 provided the original HTTP MCP bridge, the command safety validator and the block scanner.
 
-Released under **CC0-1.0**, the same as the original — public domain, no strings.
+Released under **MIT** (the original mcp-server-mod is CC0-1.0; this project relicensed on 20.08.2026).
 
 Full tool reference: [TOOLS.md](TOOLS.md) · Русское описание: [DESCRIPTION.ru.md](DESCRIPTION.ru.md)

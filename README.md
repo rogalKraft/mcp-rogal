@@ -32,19 +32,19 @@ Full tool reference: **[TOOLS.md](TOOLS.md)** · Page copy: [DESCRIPTION.md](DES
 
 ## Requirements
 
-- **Minecraft**: 26.2
-- **Fabric Loader**: 0.19.3 or higher
-- **Fabric API**: 0.154.1+26.2 or higher compatible 26.2 build
+- **Minecraft**: 26.3
+- **Fabric Loader**: 0.19.5 or higher
+- **Fabric API**: 0.161.0+26.3 or higher compatible 26.3 build
 - **Java**: 25 or higher
 
 ## Installation
 
-1. Install [Fabric Loader](https://fabricmc.net/use/installer/) for Minecraft 26.2
-2. Download and install a Minecraft 26.2-compatible [Fabric API](https://modrinth.com/mod/fabric-api)
+1. Install [Fabric Loader](https://fabricmc.net/use/installer/) for Minecraft 26.3
+2. Download and install a Minecraft 26.3-compatible [Fabric API](https://modrinth.com/mod/fabric-api)
 3. Place the mod JAR file in your `mods` folder
 4. Launch Minecraft with the Fabric profile
 
-Minecraft 26.2 is unobfuscated. This mod is built against Mojang official names and does not use Yarn mappings.
+Minecraft 26.3 is unobfuscated. This mod is built against Mojang official names and does not use Yarn mappings.
 
 ## Usage
 
@@ -257,7 +257,7 @@ For debugging purposes, you can enable local saving of every screenshot captured
 
 ## License
 
-This project is licensed under the CC0-1.0 License.
+This project is licensed under the MIT License.
 
 ## Contributing
 
